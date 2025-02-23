@@ -16,9 +16,9 @@
 
 <QuickGrid Class="table" Items="context.Booking">
     <PropertyColumn Property="booking => booking.PlayerId" />
-    <PropertyColumn Property="booking => booking.Date" />
-    <PropertyColumn Property="booking => booking.CreatedAt" />
-    <PropertyColumn Property="booking => booking.UpdatedAt" />
+    <PropertyColumn Property="booking => booking.Date" Format="MM/dd/yyyy"/>
+    <PropertyColumn Property="booking => booking.Slot" />
+
 
     <TemplateColumn Context="booking">
         <a href="@($"bookings/edit?id={booking.Id}")">Edit</a> |

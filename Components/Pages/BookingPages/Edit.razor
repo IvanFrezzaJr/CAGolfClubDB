@@ -22,10 +22,15 @@ else
                 <DataAnnotationsValidator />
                 <ValidationSummary role="alert"/>
                 <input type="hidden" name="Booking.Id" value="@Booking.Id" />
+
                 <div class="mb-3">
-                    <label for="playerid" class="form-label">PlayerId:</label>
-                    <InputNumber id="playerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true"/>
-                    <ValidationMessage For="() => Booking.PlayerId" class="text-danger" />
+                    <label for="plauerid" class="form-label">Booking By:</label>
+                    <InputSelect id="plauerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true">
+                        @foreach (var player in Players)
+                        {
+                            <option value="@player.Id">@player.Name</option>
+                        }
+                    </InputSelect>
                 </div>
                 <div class="mb-3">
                     <label for="date" class="form-label">Date:</label>
@@ -33,11 +38,20 @@ else
                     <ValidationMessage For="() => Booking.Date" class="text-danger" />
                 </div>
                 <div class="mb-3">
+                    <label for="slot" class="form-label">Slot:</label>
+                    <InputSelect id="slot" @bind-Value="Booking.Slot" class="form-control" aria-required="true">
+                        @foreach (var item in TimeSlots)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="mb-3" hidden>
                     <label for="createdat" class="form-label">CreatedAt:</label>
                     <InputDate id="createdat" @bind-Value="Booking.CreatedAt" class="form-control" />
                     <ValidationMessage For="() => Booking.CreatedAt" class="text-danger" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" hidden>
                     <label for="updatedat" class="form-label">UpdatedAt:</label>
                     <InputDate id="updatedat" @bind-Value="Booking.UpdatedAt" class="form-control" />
                     <ValidationMessage For="() => Booking.UpdatedAt" class="text-danger" />
@@ -59,6 +73,11 @@ else
     [SupplyParameterFromForm]
     private Booking? Booking { get; set; }
 
+    private List<Player> Players = new();
+
+
+    private List<string> TimeSlots { get; set; } = new();
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
@@ -68,6 +87,9 @@ else
         {
             NavigationManager.NavigateTo("notfound");
         }
+
+        TimeSlots = await GenerateAvailableTimes();
+        Players = await GetPlayersAsync();
     }
 
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -101,4 +123,34 @@ else
         using var context = DbFactory.CreateDbContext();
         return context.Booking.Any(e => e.Id == id);
     }
+
+
+    private async Task<List<string>> GenerateAvailableTimes()
+    {
+        var times = new List<string>();
+        var slotTime = new DateTime(1, 1, 1, 0, 0, 0);
+        var currentTime = DateTime.Now;
+
+        // Adds time slots every 15 minutes until 23:45
+        while (slotTime.Hour != 23 || slotTime.Minute != 45)
+        {
+            times.Add(slotTime.ToString("HH:mm"));
+            slotTime = slotTime.AddMinutes(15); // Advances by 15 minutes
+
+        }
+
+        // Advances the last 15 minutes
+        slotTime.AddMinutes(15);
+        times.Add(slotTime.ToString("HH:mm"));
+
+        return times;
+
+    }
+
+    private async Task<List<Player>> GetPlayersAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        return await context.Player.ToListAsync();
+    }
+
 }

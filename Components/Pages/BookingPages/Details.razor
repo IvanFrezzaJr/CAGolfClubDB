@@ -17,14 +17,10 @@
     }
     else {
         <dl class="row">
-            <dt class="col-sm-2">PlayerId</dt>
-            <dd class="col-sm-10">@booking.PlayerId</dd>
+            <dt class="col-sm-2">Booked By</dt>
+            <dd class="col-sm-10">@player.Name</dd>
             <dt class="col-sm-2">Date</dt>
             <dd class="col-sm-10">@booking.Date</dd>
-            <dt class="col-sm-2">CreatedAt</dt>
-            <dd class="col-sm-10">@booking.CreatedAt</dd>
-            <dt class="col-sm-2">UpdatedAt</dt>
-            <dd class="col-sm-10">@booking.UpdatedAt</dd>
         </dl>
         <div>
             <a href="@($"/bookings/edit?id={booking.Id}")">Edit</a> |
@@ -35,6 +31,7 @@
 
 @code {
     private Booking? booking;
+    private Player? player;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -43,6 +40,7 @@
     {
         using var context = DbFactory.CreateDbContext();
         booking = await context.Booking.FirstOrDefaultAsync(m => m.Id == Id);
+        player = await context.Player.FirstOrDefaultAsync(m => m.Id == booking.PlayerId);
 
         if (booking is null)
         {
