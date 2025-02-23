@@ -28,6 +28,9 @@ namespace CAGolfClubDB.Models
 
         public DateTime UpdatedAt { get; set; }
 
+        // FKs
+        public ICollection<Booking>? Bookings { get; set; }
+
     }
 }
 
