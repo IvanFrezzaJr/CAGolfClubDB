@@ -17,7 +17,7 @@
             <ValidationSummary class="text-danger" role="alert"/>
             <div class="mb-3">
                 <label for="membershipnumber" class="form-label">MembershipNumber:</label> 
-                <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" /> 
+                <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" disabled />
                 <ValidationMessage For="() => Player.MembershipNumber" class="text-danger" /> 
             </div>        
             <div class="mb-3">
@@ -30,11 +30,17 @@
                 <InputText id="email" @bind-Value="Player.Email" class="form-control" aria-required="true"/> 
                 <ValidationMessage For="() => Player.Email" class="text-danger" /> 
             </div>        
+
             <div class="mb-3">
-                <label for="gender" class="form-label">Gender:</label> 
-                <InputText id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => Player.Gender" class="text-danger" /> 
-            </div>        
+                <label for="gender" class="form-label">Gender:</label>
+                <InputSelect id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true">
+                    @foreach (var item in Enum.GetValues(typeof(Gender)))
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </InputSelect>
+            </div>
+
             <div class="mb-3">
                 <label for="handcap" class="form-label">Handcap:</label> 
                 <InputNumber id="handcap" @bind-Value="Player.Handcap" class="form-control" aria-required="true"/> 
@@ -53,12 +59,29 @@
     [SupplyParameterFromForm]
     private Player Player { get; set; } = new();
 
+    private Gender selectedGender = Gender.Other;
+    private enum Gender
+    {
+        Male,
+        Female,
+        NonBinary,
+        Other
+    }
+
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddPlayer()
     {
-        using var context = DbFactory.CreateDbContext();
+        using var context = DbFactory.CreateDbContext();;
+
         context.Player.Add(Player);
         await context.SaveChangesAsync();
+
+        Player.MembershipNumber = Player.Id.ToString("D8");
+        context.Player.Update(Player);
+        await context.SaveChangesAsync();
+
+
+
         NavigationManager.NavigateTo("/players");
     }
 }
