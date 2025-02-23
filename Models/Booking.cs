@@ -2,13 +2,14 @@
 
 using System.ComponentModel.DataAnnotations;
 using CAGolfClubDB.Validators;
-
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 public class Booking
 {
     [Key]
     public int Id { get; set; }
     [Required(ErrorMessage = "PlayerId is required.")]
+    // Foreign key property
     public int PlayerId { get; set; }
     [Required(ErrorMessage = "Date is required.")]
     [FutureDate]
@@ -17,8 +18,9 @@ public class Booking
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    // FKs
-    public required Player Player { get; set; }
+    // Navigation Property
+    [ValidateNever]
+    public Player Player { get; set; } = null!;
 
 }
 

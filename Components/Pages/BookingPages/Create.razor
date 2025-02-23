@@ -1,0 +1,59 @@
+﻿@page "/bookings/create"
+@using Microsoft.EntityFrameworkCore
+@using CAGolfClubDB.Models
+@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Booking</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Booking" OnValidSubmit="AddBooking" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="playerid" class="form-label">PlayerId:</label> 
+                <InputNumber id="playerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => Booking.PlayerId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="date" class="form-label">Date:</label> 
+                <InputDate id="date" @bind-Value="Booking.Date" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => Booking.Date" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="createdat" class="form-label">CreatedAt:</label> 
+                <InputDate id="createdat" @bind-Value="Booking.CreatedAt" class="form-control" /> 
+                <ValidationMessage For="() => Booking.CreatedAt" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="updatedat" class="form-label">UpdatedAt:</label> 
+                <InputDate id="updatedat" @bind-Value="Booking.UpdatedAt" class="form-control" /> 
+                <ValidationMessage For="() => Booking.UpdatedAt" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/bookings">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Booking Booking { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddBooking()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Booking.Add(Booking);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/bookings");
+    }
+}

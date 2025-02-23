@@ -1,0 +1,104 @@
+﻿@page "/bookings/edit"
+@using Microsoft.EntityFrameworkCore
+@using CAGolfClubDB.Models
+@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Booking</h2>
+<hr />
+@if (Booking is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Booking" OnValidSubmit="UpdateBooking" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Booking.Id" value="@Booking.Id" />
+                <div class="mb-3">
+                    <label for="playerid" class="form-label">PlayerId:</label>
+                    <InputNumber id="playerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Booking.PlayerId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="Booking.Date" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Booking.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="createdat" class="form-label">CreatedAt:</label>
+                    <InputDate id="createdat" @bind-Value="Booking.CreatedAt" class="form-control" />
+                    <ValidationMessage For="() => Booking.CreatedAt" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="updatedat" class="form-label">UpdatedAt:</label>
+                    <InputDate id="updatedat" @bind-Value="Booking.UpdatedAt" class="form-control" />
+                    <ValidationMessage For="() => Booking.UpdatedAt" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/bookings">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Booking? Booking { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Booking ??= await context.Booking.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Booking is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateBooking()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Booking!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!BookingExists(Booking!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/bookings");
+    }
+
+    private bool BookingExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Booking.Any(e => e.Id == id);
+    }
+}

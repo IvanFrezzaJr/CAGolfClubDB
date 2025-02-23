@@ -48,6 +48,7 @@ namespace CAGolfClubDB.Data
                 .Property(b => b.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
+        public DbSet<CAGolfClubDB.Models.Booking> Booking { get; set; } = default!;
 
 
     }
