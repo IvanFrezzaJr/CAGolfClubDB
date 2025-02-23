@@ -14,6 +14,8 @@ public class Booking
     [Required(ErrorMessage = "Date is required.")]
     [FutureDate]
     public DateTime Date { get; set; }
+    [Required(ErrorMessage = "Slot is required.")]
+    public string Slot { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
