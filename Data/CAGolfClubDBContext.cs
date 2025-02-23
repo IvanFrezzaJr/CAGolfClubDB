@@ -11,6 +11,8 @@ namespace CAGolfClubDB.Data
         }
 
         public DbSet<CAGolfClubDB.Models.Player> Player { get; set; } = default!;
+        public DbSet<CAGolfClubDB.Models.Booking> Booking { get; set; } = default!;
+        public DbSet<CAGolfClubDB.Models.BookingPlayer> BookingPlayer { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,6 +29,23 @@ namespace CAGolfClubDB.Data
                 .HasOne(b => b.Player)
                 .WithMany(u => u.Bookings)
                 .HasForeignKey(b => b.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // BookingPlayer definition
+            modelBuilder.Entity<BookingPlayer>()
+                .HasKey(bu => bu.Id);
+
+            modelBuilder.Entity<BookingPlayer>()
+                .HasOne(bu => bu.Booking)
+                .WithMany(b => b.BookingPlayers)
+                .HasForeignKey(bu => bu.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookingPlayer>()
+                .HasOne(bu => bu.Player)
+                .WithMany(u => u.BookingPlayers)
+                .HasForeignKey(bu => bu.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -47,8 +66,16 @@ namespace CAGolfClubDB.Data
             modelBuilder.Entity<Booking>()
                 .Property(b => b.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<BookingPlayer>()
+                .Property(bu => bu.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<BookingPlayer>()
+                .Property(bu => bu.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
-        public DbSet<CAGolfClubDB.Models.Booking> Booking { get; set; } = default!;
+        
 
 
     }

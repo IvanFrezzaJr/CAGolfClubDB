@@ -31,6 +31,9 @@ namespace CAGolfClubDB.Models
         // FKs
         public ICollection<Booking>? Bookings { get; set; }
 
+        //Navigation property
+        public ICollection<BookingPlayer>? BookingPlayers { get; set; }
+
     }
 }
 

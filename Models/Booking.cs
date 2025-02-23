@@ -23,6 +23,8 @@ public class Booking
     // Navigation Property
     [ValidateNever]
     public Player Player { get; set; } = null!;
+    //Navigation property
+    public ICollection<BookingPlayer>? BookingPlayers { get; set; }
 
 }
 

@@ -1,4 +1,5 @@
 ﻿@page "/bookings/create"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using CAGolfClubDB.Models
 @inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
@@ -62,6 +63,55 @@
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
     </div>
+
+    <div class="col-md-6">
+        @if (PlayersAvailable.Count > 0)
+        {
+            <div class="row align-items-center">
+                <div class="mb-3">
+                    <label for="playerSelect" class="form-label">Select a Player:</label>
+                    <select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
+                        <option value="0">-- Select --</option>
+                        @foreach (var player in PlayersAvailable)
+                        {
+                            <option value="@player.Id">@player.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <button class="btn btn-primary" @onclick="AddPlayer" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)">Add Player</button>
+                </div>
+            </div>
+        }
+
+        @if (SelectedPlayers.Count >= 4)
+        {
+            <p class="text-danger">Maximum of 4 players reached.</p>
+        }
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Player Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var player in SelectedPlayers.Select((p, index) => new { p, index }))
+                {
+                    <tr>
+                        <td>@(player.index + 1)</td>
+                        <td>@player.p.Name</td>
+                        <td><button class="btn btn-danger" @onclick="() => RemovePlayer(player.index, player.p.Id)">Remove</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+    </div>
 </div>
 
 <div>
@@ -73,7 +123,11 @@
     [SupplyParameterFromForm]
     private Booking Booking { get; set; } = new() { Date = DateTime.Today };
 
+    private List<BookingPlayer> BookingPlayers { get; set; } = new();
+
     private List<Player> Players = new();
+
+    private List<Player> PlayersAvailable = new();
 
     private List<string> TimeSlots { get; set; } = new();
 
@@ -83,10 +137,17 @@
 
     private string ErrorMessage = string.Empty;
 
+
+    private List<Player> SelectedPlayers = new();
+
+    private int SelectedPlayerId = 0;
+
+
     protected override async Task OnInitializedAsync()
     {
         TimeSlots = await GenerateAvailableTimes();
         Players = await GetPlayersAsync();
+        PlayersAvailable = await GetPlayersAsync();
 
     }
 
@@ -94,6 +155,7 @@
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddBooking()
     {
+
         if (!SlotAvailable()){
             ErrorMessage = "Select a future slot.";
             return;
@@ -107,8 +169,36 @@
             return;
         }
 
-        context.Booking.Add(Booking);
-        await context.SaveChangesAsync();
+        if (!BookingPlayers.Any())
+        {
+            ErrorMessage = "Please, add players.";
+            return;
+        }
+
+        using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                context.Booking.Add(Booking);
+                await context.SaveChangesAsync();
+
+                foreach (var bookingPlayer in BookingPlayers)
+                {
+                    bookingPlayer.BookingId = Booking.Id;
+                    context.BookingPlayer.Add(bookingPlayer);
+                }
+
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
         NavigationManager.NavigateTo("/bookings");
     }
 
@@ -132,7 +222,7 @@
         {
             times.Add(slotTime.ToString("HH:mm"));
             slotTime = slotTime.AddMinutes(15); // Advances by 15 minutes
-            
+
         }
 
         // Advances the last 15 minutes
@@ -149,9 +239,9 @@
 
         DateTime currentDate = DateTime.Now;
 
-        DateTime dataComHorario = currentDate.Date + SelecedTimeFormated;
+        DateTime selectedDate = currentDate.Date + SelecedTimeFormated;
 
-        if (dataComHorario > currentDate)
+        if (selectedDate > currentDate)
         {
             return true;
         }
@@ -160,5 +250,38 @@
             return false;
         }
     }
+
+
+    private void AddPlayer()
+    {
+        if (SelectedPlayers.Count < 4)
+        {
+            var player = PlayersAvailable.FirstOrDefault(p => p.Id == SelectedPlayerId);
+            if (player != null && !SelectedPlayers.Any(p => p.Id == player.Id))
+            {
+                BookingPlayers.Add(new BookingPlayer
+                {
+                        PlayerId = player.Id,
+                        BookingId = 0
+                }
+                );
+                SelectedPlayers.Add(player);
+                SelectedPlayerId = 0; // Reset dropdown
+            }
+        }
+    }
+
+    private void RemovePlayer(int index, int playerId)
+    {
+        BookingPlayer? playerToRemove = BookingPlayers.FirstOrDefault(p => p.Id == playerId);
+      
+        if (playerToRemove != null)
+        {
+            BookingPlayers.Remove(playerToRemove);
+        }
+
+        SelectedPlayers.RemoveAt(index);
+    }
+
 
 }
