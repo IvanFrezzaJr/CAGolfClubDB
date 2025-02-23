@@ -24,7 +24,7 @@ else
                 <input type="hidden" name="Player.Id" value="@Player.Id" />
                 <div class="mb-3">
                     <label for="membershipnumber" class="form-label">MembershipNumber:</label>
-                    <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" />
+                    <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" disabled />
                     <ValidationMessage For="() => Player.MembershipNumber" class="text-danger" />
                 </div>
                 <div class="mb-3">
@@ -39,23 +39,17 @@ else
                 </div>
                 <div class="mb-3">
                     <label for="gender" class="form-label">Gender:</label>
-                    <InputText id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true"/>
-                    <ValidationMessage For="() => Player.Gender" class="text-danger" />
+                    <InputSelect id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true">
+                        @foreach (var item in Enum.GetValues(typeof(Gender)))
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </InputSelect>
                 </div>
                 <div class="mb-3">
                     <label for="handcap" class="form-label">Handcap:</label>
                     <InputNumber id="handcap" @bind-Value="Player.Handcap" class="form-control" aria-required="true"/>
                     <ValidationMessage For="() => Player.Handcap" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="createdat" class="form-label">CreatedAt:</label>
-                    <InputDate id="createdat" @bind-Value="Player.CreatedAt" class="form-control" />
-                    <ValidationMessage For="() => Player.CreatedAt" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="updatedat" class="form-label">UpdatedAt:</label>
-                    <InputDate id="updatedat" @bind-Value="Player.UpdatedAt" class="form-control" />
-                    <ValidationMessage For="() => Player.UpdatedAt" class="text-danger" />
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
@@ -74,6 +68,15 @@ else
     [SupplyParameterFromForm]
     private Player? Player { get; set; }
 
+    private Gender selectedGender = Gender.Other;
+    private enum Gender
+    {
+        Male,
+        Female,
+        NonBinary,
+        Other
+    }
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
@@ -90,10 +93,20 @@ else
     private async Task UpdatePlayer()
     {
         using var context = DbFactory.CreateDbContext();
+
+        if (Player != null){
+            Player.UpdatedAt = DateTime.UtcNow;
+        }
+
         context.Attach(Player!).State = EntityState.Modified;
 
         try
         {
+            if (Player != null)
+            {
+                Player.MembershipNumber = Player.Id.ToString("D8");
+                context.Player.Update(Player);
+            }
             await context.SaveChangesAsync();
         }
         catch (DbUpdateConcurrencyException)
