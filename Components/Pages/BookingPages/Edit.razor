@@ -1,4 +1,5 @@
 ﻿@page "/bookings/edit"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using CAGolfClubDB.Models
 @inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
@@ -59,6 +60,57 @@ else
                 <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
+
+
+        <div class="col-md-6">
+            @if (PlayersAvailable.Count > 0)
+            {
+                <div class="row align-items-center">
+                    <div class="mb-3">
+                        <label for="playerSelect" class="form-label">Select a Player:</label>
+                        <select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
+                            <option value="0">-- Select --</option>
+                            @foreach (var player in PlayersAvailable)
+                            {
+                                <option value="@player.Id">@player.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <button class="btn btn-primary" @onclick="AddPlayer" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)">Add Player</button>
+                    </div>
+                </div>
+            }
+
+            @if (SelectedPlayers.Count >= 4)
+            {
+                <p class="text-danger">Maximum of 4 players reached.</p>
+            }
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var player in SelectedPlayers.Select((p, index) => new { p, index }))
+                    {
+                        <tr>
+                            <td>@(player.index + 1)</td>
+                            <td>@player.p.Name</td>
+                            <td><button class="btn btn-danger" @onclick="() => RemovePlayer(player.index, player.p.Id)">Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+
     </div>
 }
 
@@ -75,6 +127,15 @@ else
 
     private List<Player> Players = new();
 
+    private List<Player> PlayersAvailable = new();
+
+    private List<Player> SelectedPlayers = new();
+
+
+    private List<BookingPlayer> BookingPlayers { get; set; } = new();
+
+    private int SelectedPlayerId = 0;
+
 
     private List<string> TimeSlots { get; set; } = new();
 
@@ -90,6 +151,20 @@ else
 
         TimeSlots = await GenerateAvailableTimes();
         Players = await GetPlayersAsync();
+        PlayersAvailable = await GetPlayersAsync();
+
+
+        var bookingPlayers = await context.BookingPlayer.Where(m => m.BookingId == Id).ToListAsync();
+
+        foreach (var bookingPlayer in bookingPlayers)
+        {
+            var playersOnBooking = await context.Player.Where(p => p.Id == bookingPlayer.PlayerId).ToListAsync();
+
+            foreach (var p in playersOnBooking)
+            {
+                SelectedPlayers.Add(p);
+            }
+        }
     }
 
     // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -99,19 +174,42 @@ else
         using var context = DbFactory.CreateDbContext();
         context.Attach(Booking!).State = EntityState.Modified;
 
-        try
+        using (var transaction = await context.Database.BeginTransactionAsync())
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!BookingExists(Booking!.Id))
+            try
             {
-                NavigationManager.NavigateTo("notfound");
+                await context.SaveChangesAsync();
+
+                var playersToDelete = context.BookingPlayer
+                              .Where(b => b.BookingId == Booking.Id)
+                              .ToList();
+
+                context.BookingPlayer.RemoveRange(playersToDelete);
+
+                await context.SaveChangesAsync();
+
+                foreach (var SelectedPlayer in SelectedPlayers){
+                    context.BookingPlayer.Add(new BookingPlayer {
+                            PlayerId = SelectedPlayer.Id,
+                            BookingId = Booking.Id
+                    });
+                }
+      
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
             }
-            else
+
+            catch (DbUpdateConcurrencyException)
             {
-                throw;
+                if (!BookingExists(Booking!.Id))
+                {
+                    NavigationManager.NavigateTo("notfound");
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -151,6 +249,58 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         return await context.Player.ToListAsync();
+    }
+
+
+
+
+    private bool SlotAvailable()
+    {
+        TimeSpan SelecedTimeFormated = TimeSpan.Parse(Booking.Slot);
+
+        DateTime currentDate = DateTime.Now;
+
+        DateTime selectedDate = currentDate.Date + SelecedTimeFormated;
+
+        if (selectedDate > currentDate)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void AddPlayer()
+    {
+        if (SelectedPlayers.Count < 4)
+        {
+            var player = PlayersAvailable.FirstOrDefault(p => p.Id == SelectedPlayerId);
+            if (player != null && !SelectedPlayers.Any(p => p.Id == player.Id))
+            {
+                BookingPlayers.Add(new BookingPlayer
+                    {
+                        PlayerId = player.Id,
+                        BookingId = 0
+                    }
+                );
+                SelectedPlayers.Add(player);
+                SelectedPlayerId = 0; // Reset dropdown
+            }
+        }
+    }
+
+    private void RemovePlayer(int index, int playerId)
+    {
+        BookingPlayer? playerToRemove = BookingPlayers.FirstOrDefault(p => p.Id == playerId);
+
+        if (playerToRemove != null)
+        {
+            BookingPlayers.Remove(playerToRemove);
+        }
+
+        SelectedPlayers.RemoveAt(index);
     }
 
 }

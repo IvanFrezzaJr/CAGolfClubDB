@@ -96,7 +96,6 @@
                         Handicap = p.Handcap
                 });
             }
-
         }
 
 
@@ -115,6 +114,16 @@
         using var context = DbFactory.CreateDbContext();
         context.Booking.Remove(booking!);
         await context.SaveChangesAsync();
+
+        var playersToDelete = context.BookingPlayer
+                             .Where(b => b.BookingId == booking.Id)
+                             .ToList();
+
+        context.BookingPlayer.RemoveRange(playersToDelete);
+
+        await context.SaveChangesAsync();
+
+
         NavigationManager.NavigateTo("/bookings");
     }
 }
