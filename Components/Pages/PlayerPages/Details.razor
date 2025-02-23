@@ -1,0 +1,58 @@
+﻿@page "/players/details"
+@using Microsoft.EntityFrameworkCore
+@using CAGolfClubDB.Models
+@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Player</h2>
+    <hr />
+    @if (player is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">MembershipNumber</dt>
+            <dd class="col-sm-10">@player.MembershipNumber</dd>
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@player.Name</dd>
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@player.Email</dd>
+            <dt class="col-sm-2">Gender</dt>
+            <dd class="col-sm-10">@player.Gender</dd>
+            <dt class="col-sm-2">Handcap</dt>
+            <dd class="col-sm-10">@player.Handcap</dd>
+            <dt class="col-sm-2">CreatedAt</dt>
+            <dd class="col-sm-10">@player.CreatedAt</dd>
+            <dt class="col-sm-2">UpdatedAt</dt>
+            <dd class="col-sm-10">@player.UpdatedAt</dd>
+        </dl>
+        <div>
+            <a href="@($"/players/edit?id={player.Id}")">Edit</a> |
+            <a href="@($"/players")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Player? player;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        player = await context.Player.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (player is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

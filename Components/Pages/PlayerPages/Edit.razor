@@ -1,0 +1,119 @@
+﻿@page "/players/edit"
+@using Microsoft.EntityFrameworkCore
+@using CAGolfClubDB.Models
+@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Player</h2>
+<hr />
+@if (Player is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Player" OnValidSubmit="UpdatePlayer" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Player.Id" value="@Player.Id" />
+                <div class="mb-3">
+                    <label for="membershipnumber" class="form-label">MembershipNumber:</label>
+                    <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" />
+                    <ValidationMessage For="() => Player.MembershipNumber" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Player.Name" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Player.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Player.Email" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Player.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="gender" class="form-label">Gender:</label>
+                    <InputText id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Player.Gender" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="handcap" class="form-label">Handcap:</label>
+                    <InputNumber id="handcap" @bind-Value="Player.Handcap" class="form-control" aria-required="true"/>
+                    <ValidationMessage For="() => Player.Handcap" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="createdat" class="form-label">CreatedAt:</label>
+                    <InputDate id="createdat" @bind-Value="Player.CreatedAt" class="form-control" />
+                    <ValidationMessage For="() => Player.CreatedAt" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="updatedat" class="form-label">UpdatedAt:</label>
+                    <InputDate id="updatedat" @bind-Value="Player.UpdatedAt" class="form-control" />
+                    <ValidationMessage For="() => Player.UpdatedAt" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/players">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Player? Player { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Player ??= await context.Player.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Player is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdatePlayer()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Player!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!PlayerExists(Player!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/players");
+    }
+
+    private bool PlayerExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Player.Any(e => e.Id == id);
+    }
+}
