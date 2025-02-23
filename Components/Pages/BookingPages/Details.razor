@@ -22,6 +22,27 @@
             <dt class="col-sm-2">Date</dt>
             <dd class="col-sm-10">@booking.Date</dd>
         </dl>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Handicap</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var player in players)
+                {
+                    <tr>
+                        <td>@player.Name</td>
+                        <td>@player.Handicap</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+
         <div>
             <a href="@($"/bookings/edit?id={booking.Id}")">Edit</a> |
             <a href="@($"/bookings")">Back to List</a>
@@ -30,17 +51,47 @@
 </div>
 
 @code {
-    private Booking? booking;
-    private Player? player;
+
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
+
+
+    private Booking? booking;
+    private Player? player;
+    private List<PlayerInfo> players = new();
+
+    public class PlayerInfo
+    {
+        public string Name { get; set; }
+        public double Handicap { get; set; }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
         booking = await context.Booking.FirstOrDefaultAsync(m => m.Id == Id);
         player = await context.Player.FirstOrDefaultAsync(m => m.Id == booking.PlayerId);
+        var bookingPlayers = await context.BookingPlayer.Where(m => m.BookingId == Id).ToListAsync();
+
+        foreach (var bookingPlayer in bookingPlayers)
+        {
+            var playersOnBooking = await context.Player.Where(p => p.Id == bookingPlayer.PlayerId).ToListAsync();
+
+            foreach (var p in playersOnBooking)
+            {
+
+
+                players.Add(new PlayerInfo
+                    {
+                        Name = p.Name,
+                        Handicap = p.Handcap
+                    });
+            }
+
+        }
+
 
         if (booking is null)
         {

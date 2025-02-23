@@ -162,6 +162,14 @@
         }
         using var context = DbFactory.CreateDbContext();
 
+
+        var alreadyBooked = await context.Booking.Where(e => e.PlayerId == Booking.PlayerId && e.Date.Date == DateTime.Now.Date).FirstOrDefaultAsync();
+        if (alreadyBooked != null)
+        {
+            ErrorMessage = "Member already have a booking in this day.";
+            return;
+        }
+
         var slotAvailable = await context.Booking.Where(e => e.Date.Date == Booking.Date.Date && e.Slot == Booking.Slot).FirstOrDefaultAsync();
         if (slotAvailable != null)
         {
@@ -171,7 +179,7 @@
 
         if (!BookingPlayers.Any())
         {
-            ErrorMessage = "Please, add players.";
+            ErrorMessage = "Please add a player at least";
             return;
         }
 
