@@ -46,7 +46,7 @@
 
 @code {
     [SupplyParameterFromForm]
-    private Booking Booking { get; set; } = new();
+    private Booking Booking { get; set; } = new() { Date = DateTime.Today };
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddBooking()
