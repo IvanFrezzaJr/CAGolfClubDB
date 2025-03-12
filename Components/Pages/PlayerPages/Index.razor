@@ -101,8 +101,15 @@ else
 
     protected async Task LoadPlayersAsync()
     {
-        var items = await PlayerRepository.GetPlayersAsync();
-        itemsQueryable = items.AsQueryable();
+        try
+        {
+            var items = await PlayerRepository.GetPlayersAsync();
+            itemsQueryable = items.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar jogadores: {ex.Message}");
+        }
     }
 
     protected override async Task OnInitializedAsync()

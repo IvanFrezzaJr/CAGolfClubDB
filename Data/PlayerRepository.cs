@@ -31,7 +31,7 @@ public class PlayerRepository : Repository<Player>
 
         if (!string.IsNullOrEmpty(nameFilter))
         {
-            query = query.Where(c => c.Name.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(c => EF.Functions.Like(c.Name, $"%{nameFilter}%"));
         }
 
         if (genderFilter != "All")
