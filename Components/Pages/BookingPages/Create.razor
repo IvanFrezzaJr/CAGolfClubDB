@@ -1,9 +1,10 @@
 ﻿@page "/bookings/create"
 @rendermode InteractiveServer
-@using Microsoft.EntityFrameworkCore
 @using CAGolfClubDB.Models
-@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@using CAGolfClubDB.Data
 @inject NavigationManager NavigationManager
+@inject BookingRepository BookingRepo
+@inject PlayerRepository PlayerRepo
 
 <PageTitle>Create</PageTitle>
 
@@ -17,15 +18,16 @@
         @ErrorMessage
     </div>
 }
+
 <div class="row">
     <div class="col-md-4">
         <EditForm method="post" Model="Booking" OnValidSubmit="AddBooking" FormName="create" Enhance>
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
+            <ValidationSummary class="text-danger" role="alert" />
 
             <div class="mb-3">
-                <label for="plauerid" class="form-label">Booking By:</label>
-                <InputSelect id="plauerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true">
+                <label for="playerid" class="form-label">Booking By:</label>
+                <InputSelect id="playerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true">
                     @foreach (var player in Players)
                     {
                         <option value="@player.Id">@player.Name</option>
@@ -34,9 +36,9 @@
             </div>
 
             <div class="mb-3">
-                <label for="date" class="form-label">Date:</label> 
-                <InputDate id="date" @bind-Value="Booking.Date" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => Booking.Date" class="text-danger" /> 
+                <label for="date" class="form-label">Date:</label>
+                <InputDate id="date" @bind-Value="Booking.Date" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Booking.Date" class="text-danger" />
             </div>
 
             <div class="mb-3">
@@ -49,30 +51,19 @@
                 </InputSelect>
             </div>
 
-
-            <div class="mb-3" hidden>
-                <label for="createdat" class="form-label">CreatedAt:</label> 
-                <InputDate id="createdat" @bind-Value="Booking.CreatedAt" class="form-control" /> 
-                <ValidationMessage For="() => Booking.CreatedAt" class="text-danger" /> 
-            </div>        
-            <div class="mb-3" hidden>
-                <label for="updatedat" class="form-label">UpdatedAt:</label> 
-                <InputDate id="updatedat" @bind-Value="Booking.UpdatedAt" class="form-control" /> 
-                <ValidationMessage For="() => Booking.UpdatedAt" class="text-danger" /> 
-            </div>        
             <button type="submit" class="btn btn-primary">Create</button>
         </EditForm>
     </div>
 
     <div class="col-md-6">
-        @if (PlayersAvailable.Count > 0)
+        @if (Players.Count > 0)
         {
             <div class="row align-items-center">
                 <div class="mb-3">
                     <label for="playerSelect" class="form-label">Select a Player:</label>
                     <select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
                         <option value="0">-- Select --</option>
-                        @foreach (var player in PlayersAvailable)
+                        @foreach (var player in Players)
                         {
                             <option value="@player.Id">@player.Name</option>
                         }
@@ -109,171 +100,88 @@
                 }
             </tbody>
         </table>
-
-
     </div>
 </div>
+
 
 <div>
     <a href="/bookings">Back to List</a>
 </div>
 
-
 @code {
-    [SupplyParameterFromForm]
     private Booking Booking { get; set; } = new() { Date = DateTime.Today };
-
-    private List<BookingPlayer> BookingPlayers { get; set; } = new();
 
     private List<Player> Players = new();
 
-    private List<Player> PlayersAvailable = new();
-
     private List<string> TimeSlots { get; set; } = new();
 
-    public string SelectedTime = string.Empty;
-
-    private string SelectedDate = string.Empty;
-
     private string ErrorMessage = string.Empty;
-
 
     private List<Player> SelectedPlayers = new();
 
     private int SelectedPlayerId = 0;
 
-
     protected override async Task OnInitializedAsync()
     {
-        TimeSlots = await GenerateAvailableTimes();
-        Players = await GetPlayersAsync();
-        PlayersAvailable = await GetPlayersAsync();
-
+        TimeSlots = BookingRepo.GenerateAvailableTimes();
+        Players = await PlayerRepo.GetPlayersAsync();
     }
 
-
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddBooking()
     {
-
-        if (!SlotAvailable()){
+        if (!SlotAvailable())
+        {
             ErrorMessage = "Select a future slot.";
             return;
         }
-        using var context = DbFactory.CreateDbContext();
 
-
-        var alreadyBooked = await context.Booking.Where(e => e.PlayerId == Booking.PlayerId && e.Date.Date == DateTime.Now.Date).FirstOrDefaultAsync();
-        if (alreadyBooked != null)
+        var alreadyBooked = await BookingRepo.IsPlayerAlreadyBookedAsync(Booking.PlayerId, Booking.Date);
+        if (alreadyBooked)
         {
-            ErrorMessage = "Member already have a booking in this day.";
+            ErrorMessage = "Member already has a booking on this day.";
             return;
         }
 
-        var slotAvailable = await context.Booking.Where(e => e.Date.Date == Booking.Date.Date && e.Slot == Booking.Slot).FirstOrDefaultAsync();
-        if (slotAvailable != null)
+        var slotAvailable = await BookingRepo.IsSlotAvailableAsync(Booking.Slot, Booking.Date);
+        if (!slotAvailable)
         {
             ErrorMessage = "Slot is not available.";
             return;
         }
 
-        if (!BookingPlayers.Any())
+        if (!SelectedPlayers.Any())
         {
-            ErrorMessage = "Please add a player at least";
+            ErrorMessage = "Please add at least one player.";
             return;
         }
 
-        using (var transaction = await context.Database.BeginTransactionAsync())
+        try
         {
-            try
-            {
-                context.Booking.Add(Booking);
-                await context.SaveChangesAsync();
-
-                foreach (var bookingPlayer in BookingPlayers)
-                {
-                    bookingPlayer.BookingId = Booking.Id;
-                    context.BookingPlayer.Add(bookingPlayer);
-                }
-
-                await context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                Console.WriteLine($"Error: {ex.Message}");
-            }
+            await BookingRepo.AddBookingAsync(Booking, SelectedPlayers.Select(p => new BookingPlayer { PlayerId = p.Id }).ToList());
+            NavigationManager.NavigateTo("/bookings");
         }
-
-        NavigationManager.NavigateTo("/bookings");
-    }
-
-
-
-    private async Task<List<Player>> GetPlayersAsync()
-    {
-        using var context = DbFactory.CreateDbContext();
-        return await context.Player.ToListAsync();
-    }
-
-
-    private async Task<List<string>> GenerateAvailableTimes()
-    {
-        var times = new List<string>();
-        var slotTime = new DateTime(1, 1, 1, 0, 0, 0);
-        var currentTime = DateTime.Now;
-
-        // Adds time slots every 15 minutes until 23:45
-        while (slotTime.Hour != 23 || slotTime.Minute != 45)
+        catch (Exception ex)
         {
-            times.Add(slotTime.ToString("HH:mm"));
-            slotTime = slotTime.AddMinutes(15); // Advances by 15 minutes
-
+            ErrorMessage = ex.Message;
         }
-
-        // Advances the last 15 minutes
-        slotTime.AddMinutes(15);
-        times.Add(slotTime.ToString("HH:mm"));
-
-        return times;
-
     }
 
-
-
-    private bool SlotAvailable(){
-        TimeSpan SelecedTimeFormated = TimeSpan.Parse(Booking.Slot);
-
+    private bool SlotAvailable()
+    {
+        TimeSpan selectedTime = TimeSpan.Parse(Booking.Slot);
         DateTime currentDate = DateTime.Now;
+        DateTime selectedDate = currentDate.Date + selectedTime;
 
-        DateTime selectedDate = currentDate.Date + SelecedTimeFormated;
-
-        if (selectedDate > currentDate)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return selectedDate > currentDate;
     }
-
 
     private void AddPlayer()
     {
         if (SelectedPlayers.Count < 4)
         {
-            var player = PlayersAvailable.FirstOrDefault(p => p.Id == SelectedPlayerId);
+            var player = Players.FirstOrDefault(p => p.Id == SelectedPlayerId);
             if (player != null && !SelectedPlayers.Any(p => p.Id == player.Id))
             {
-                BookingPlayers.Add(new BookingPlayer
-                {
-                        PlayerId = player.Id,
-                        BookingId = 0
-                }
-                );
                 SelectedPlayers.Add(player);
                 SelectedPlayerId = 0; // Reset dropdown
             }
@@ -282,15 +190,10 @@
 
     private void RemovePlayer(int index, int playerId)
     {
-        BookingPlayer? playerToRemove = BookingPlayers.FirstOrDefault(p => p.Id == playerId);
-      
+        var playerToRemove = SelectedPlayers.FirstOrDefault(p => p.Id == playerId);
         if (playerToRemove != null)
         {
-            BookingPlayers.Remove(playerToRemove);
+            SelectedPlayers.Remove(playerToRemove);
         }
-
-        SelectedPlayers.RemoveAt(index);
     }
-
-
 }
