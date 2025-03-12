@@ -5,7 +5,8 @@
 @using CAGolfClubDB.Models
 @using CAGolfClubDB.Data
 @implements IAsyncDisposable
-@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject PlayerRepository PlayerRepository
+
 
 
 <PageTitle>Index</PageTitle>
@@ -78,7 +79,6 @@ else
 }
 
 @code {
-    private CAGolfClubDBContext context = default!;
     private IQueryable<Player>? itemsQueryable;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
     private string nameFilter = string.Empty;
@@ -86,78 +86,31 @@ else
     private string handicapFilter = "All";
     protected List<string> genderList = [];
 
-
     IQueryable<Player> FilteredPlayers
     {
         get
         {
-            IQueryable<Player>? result = itemsQueryable;
-
-            if (result == null){
-                return Enumerable.Empty<Player>().AsQueryable();
-            }
-
-
-            if (!string.IsNullOrEmpty(nameFilter))
-            {
-                result = result.Where(c => c.Name.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
-            }
-
-            if (genderFilter != "All")
-            {
-                result = result.Where(c => c.Gender == genderFilter);
-            }
-
-            if (handicapFilter != "All"){
-
-                switch (handicapFilter) 
-                {
-                    case "10":
-                        result = result.Where(c => c.Handcap <= 10);
-                        break;
-
-                    case "11-20":
-                        result = result.Where(c => c.Handcap > 10 && c.Handcap < 20);
-                        break;
-
-                    case "20":
-                        result = result.Where(c => c.Handcap >= 20);
-                        break;
-                }
-            }
-
-            return result;
+            return PlayerRepository.GetFilteredPlayers(nameFilter, genderFilter, handicapFilter);
         }
     }
 
-    protected async Task GenderList(){
-        genderList = await context.Player
-            .Select(p => p.Gender) 
-            .Distinct()
-            .ToListAsync();
+    protected async Task LoadGendersAsync()
+    {
+        genderList = await PlayerRepository.GetDistinctGendersAsync();
     }
 
-
-    protected async Task HandicapList()
+    protected async Task LoadPlayersAsync()
     {
-        genderList = await context.Player
-            .Select(p => p.Gender)
-            .Distinct()
-            .ToListAsync();
+        var items = await PlayerRepository.GetPlayersAsync();
+        itemsQueryable = items.AsQueryable();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
-        var items = await context.Player.ToListAsync();
-
-        itemsQueryable = context.Player.OrderBy(p => p.Name);
-        itemsQueryable = items.AsQueryable();
-
-        await GenderList();
-
+        await LoadPlayersAsync();
+        await LoadGendersAsync();
     }
 
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
