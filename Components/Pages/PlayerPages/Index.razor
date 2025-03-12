@@ -22,8 +22,6 @@
 }
 else
 {
-
-
     <div class="grid">
         <QuickGrid Class="table" Items="@FilteredPlayers" ItemKey="@(x => x.Id)" Pagination="@pagination">
             <PropertyColumn Title="MembershipNumber" Property="@(x => x.MembershipNumber)" Sortable="true" />
@@ -48,7 +46,18 @@ else
                     </div>
                 </ColumnOptions>
             </PropertyColumn>
-            <PropertyColumn Title="Handicap" Property="@(x => x.Handcap)" Sortable="true" />
+            <PropertyColumn Title="Handicap" Property="@(x => x.Handcap)" Sortable="true" >
+                <ColumnOptions>
+                    <div class="filter-box">
+                        <select @bind="handicapFilter" @bind:event="onchange">
+                            <option value="All" selected>All</option>
+                            <option value="10">Below 10</option>
+                            <option value="11-20">Between 11 and 20</option>
+                            <option value="20">Above 20</option>
+                        </select>
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
 
             <TemplateColumn Context="player">
                 <a href="@($"players/edit?id={player.Id}")">Edit</a> |
@@ -74,6 +83,7 @@ else
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
     private string nameFilter = string.Empty;
     private string genderFilter = "All";
+    private string handicapFilter = "All";
     protected List<string> genderList = [];
 
 
@@ -98,6 +108,24 @@ else
                 result = result.Where(c => c.Gender == genderFilter);
             }
 
+            if (handicapFilter != "All"){
+
+                switch (handicapFilter) 
+                {
+                    case "10":
+                        result = result.Where(c => c.Handcap <= 10);
+                        break;
+
+                    case "11-20":
+                        result = result.Where(c => c.Handcap > 10 && c.Handcap < 20);
+                        break;
+
+                    case "20":
+                        result = result.Where(c => c.Handcap >= 20);
+                        break;
+                }
+            }
+
             return result;
         }
     }
@@ -105,6 +133,15 @@ else
     protected async Task GenderList(){
         genderList = await context.Player
             .Select(p => p.Gender) 
+            .Distinct()
+            .ToListAsync();
+    }
+
+
+    protected async Task HandicapList()
+    {
+        genderList = await context.Player
+            .Select(p => p.Gender)
             .Distinct()
             .ToListAsync();
     }
