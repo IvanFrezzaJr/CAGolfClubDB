@@ -11,8 +11,10 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+// dependencies injection
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<PlayerRepository>();
+builder.Services.AddScoped<BookingRepository>();
 
 
 // Add services to the container.

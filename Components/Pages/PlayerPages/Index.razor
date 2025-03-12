@@ -7,10 +7,7 @@
 @implements IAsyncDisposable
 @inject PlayerRepository PlayerRepository
 
-
-
 <PageTitle>Index</PageTitle>
-
 
 <h1>Index</h1>
 
@@ -18,7 +15,8 @@
     <a href="players/create">Create New</a>
 </p>
 
-@if (itemsQueryable == null) {
+@if (itemsQueryable == null) 
+{
     <p><em>loading...</em></p>
 }
 else
@@ -108,7 +106,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar jogadores: {ex.Message}");
+            Console.WriteLine($"Error load player: {ex.Message}");
         }
     }
 

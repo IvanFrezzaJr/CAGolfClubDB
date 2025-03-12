@@ -1,10 +1,11 @@
 ﻿@page "/bookings"
+@rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using CAGolfClubDB.Models
 @using CAGolfClubDB.Data
 @implements IAsyncDisposable
-@inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
+@inject BookingRepository BookingRepository
 
 <PageTitle>Index</PageTitle>
 
@@ -14,26 +15,60 @@
     <a href="bookings/create">Create New</a>
 </p>
 
-<QuickGrid Class="table" Items="context.Booking">
-    <PropertyColumn Property="booking => booking.PlayerId" />
-    <PropertyColumn Property="booking => booking.Date" Format="MM/dd/yyyy"/>
-    <PropertyColumn Property="booking => booking.Slot" />
+@if (itemsQueryable == null)
+{
+    <p><em>loading...</em></p>
+}
+else
+{
+    <div class="grid">
+        <QuickGrid Class="table" Items="@FilteredBookings">
+            <PropertyColumn Property="booking => booking.PlayerId" Sortable="true" />
+            <PropertyColumn Property="booking => booking.Date" Format="dd/MM/yyyy" Sortable="true" />
+            <PropertyColumn Property="booking => booking.Slot" Sortable="true" />
 
 
-    <TemplateColumn Context="booking">
-        <a href="@($"bookings/edit?id={booking.Id}")">Edit</a> |
-        <a href="@($"bookings/details?id={booking.Id}")">Details</a> |
-        <a href="@($"bookings/delete?id={booking.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+            <TemplateColumn Context="booking">
+                <a href="@($"bookings/edit?id={booking.Id}")">Edit</a> |
+                <a href="@($"bookings/details?id={booking.Id}")">Details</a> |
+                <a href="@($"bookings/delete?id={booking.Id}")">Delete</a>
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+}
 
 @code {
     private CAGolfClubDBContext context = default!;
 
-    protected override void OnInitialized()
+    private IQueryable<Booking>? itemsQueryable;
+
+
+    IQueryable<Booking> FilteredBookings
     {
-        context = DbFactory.CreateDbContext();
+        get
+        {
+            return BookingRepository.GetFilteredBookings();
+        }
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    protected async Task LoadBookingsAsync()
+    {
+        try
+        {
+            var items = await BookingRepository.GetBookingsAsync();
+            itemsQueryable = items.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error load player: {ex.Message}");
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookingsAsync();
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }
