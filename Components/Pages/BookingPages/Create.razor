@@ -6,6 +6,17 @@
 @inject BookingRepository BookingRepo
 @inject PlayerRepository PlayerRepo
 
+
+<!--
+TODO:
+- [x] refatorar pagina. mover todas as acoes do banco de dados par ao repositorio correto
+- verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
+- blocar o bota de criar ate todos os player forem adicionados
+- remover players ja adicionados da lista (desejavel)
+- adicionar validacao na modificacao dos campos (desejavel)
+- bug: valdiacao duplicada. remover uma das validacoes: The date must be today or in the future.
+-->
+
 <PageTitle>Create</PageTitle>
 
 <h1>Create</h1>
@@ -27,7 +38,8 @@
 
             <div class="mb-3">
                 <label for="playerid" class="form-label">Booking By:</label>
-                <InputSelect id="playerid" @bind-Value="Booking.PlayerId" class="form-control" aria-required="true">
+                <InputSelect id="playerid" class="form-control" aria-required="true" 
+                @bind-Value="Booking.PlayerId">
                     @foreach (var player in Players)
                     {
                         <option value="@player.Id">@player.Name</option>
@@ -37,8 +49,11 @@
 
             <div class="mb-3">
                 <label for="date" class="form-label">Date:</label>
-                <InputDate id="date" @bind-Value="Booking.Date" class="form-control" aria-required="true" />
-                <ValidationMessage For="() => Booking.Date" class="text-danger" />
+
+                @* <InputDate id="date" class="form-control" aria-required="true" *@
+                @*             @bind-Value="Booking.Date" @onchange="@(x => OnDateChanged(@Booking.Date))" /> *@
+
+                <InputDate id="datePicker" class="form-control" @bind-Value="@BookingDate"  />
             </div>
 
             <div class="mb-3">
@@ -121,14 +136,38 @@
 
     private int SelectedPlayerId = 0;
 
+    private DateTime _bookingDate = DateTime.Today;
+
+    public DateTime BookingDate
+    {
+        get => _bookingDate;
+        set
+        {
+            _bookingDate = value; 
+
+            OnDateChanged(_bookingDate);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         TimeSlots = BookingRepo.GenerateAvailableTimes();
         Players = await PlayerRepo.GetPlayersAsync();
     }
 
+
+    private void OnDateChanged(DateTime bookingDate)
+    {
+        TimeSlots = BookingRepo.GenerateAvailableTimes(bookingDate);
+
+        StateHasChanged();
+    }
+
+
     private async Task AddBooking()
     {
+        Booking.Date = BookingDate;
+
         if (!SlotAvailable())
         {
             ErrorMessage = "Select a future slot.";
@@ -196,4 +235,6 @@
             SelectedPlayers.Remove(playerToRemove);
         }
     }
+
+    
 }

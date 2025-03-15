@@ -60,16 +60,52 @@ public class BookingRepository(CAGolfClubDBContext context) : Repository<Booking
         }
     }
 
-    public List<string> GenerateAvailableTimes()
+    public List<string> GenerateAvailableTimes(DateTime? bookingDate = null)
     {
         var times = new List<string>();
-        var slotTime = new DateTime(1, 1, 1, 0, 0, 0);
-        var currentTime = DateTime.Now;
+        
+        DateTime currentDateTime = DateTime.Now;
+        DateTime? startOn = null;
+
+        var slotTime = currentDateTime.Date;
+
+        if (bookingDate == null)
+        {
+            bookingDate = DateTime.Now;
+
+        }
+
+        if (currentDateTime.Date > bookingDate?.Date)
+        {
+            return [];
+        }
+
+        if (currentDateTime.Date == bookingDate?.Date)
+        {
+            startOn = DateTime.Parse(currentDateTime.ToString("HH:mm"), System.Globalization.CultureInfo.CurrentCulture);
+        }
+
+
 
         while (slotTime.Hour != 23 || slotTime.Minute != 45)
         {
-            times.Add(slotTime.ToString("HH:mm"));
             slotTime = slotTime.AddMinutes(15); // Advances by 15 minutes
+
+            if (startOn != null)
+            {
+                if (startOn?.TimeOfDay > slotTime.TimeOfDay)
+                {
+                    continue;
+                }
+            } else
+            {
+                if (bookingDate.HasValue && bookingDate.Value.TimeOfDay > slotTime.TimeOfDay)
+                {
+                    continue;
+                }
+            }
+     
+            times.Add(slotTime.ToString("HH:mm"));
         }
 
         slotTime.AddMinutes(15);
