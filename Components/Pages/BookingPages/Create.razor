@@ -10,7 +10,7 @@
 <!--
 TODO:
 - [x] refatorar pagina. mover todas as acoes do banco de dados par ao repositorio correto
-- verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
+- [x] verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
 - blocar o bota de criar ate todos os player forem adicionados
 - remover players ja adicionados da lista (desejavel)
 - adicionar validacao na modificacao dos campos (desejavel)
@@ -25,216 +25,243 @@ TODO:
 <hr />
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
-    <div class="alert alert-danger">
-        @ErrorMessage
-    </div>
+	<div class="alert alert-danger">
+		@ErrorMessage
+	</div>
 }
 
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Booking" OnValidSubmit="AddBooking" FormName="create" Enhance>
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
+<EditForm method="post" Model="Booking" OnValidSubmit="AddBooking" FormName="create" Enhance>
+	<div class="container">
+		<div class="row">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
 
-            <div class="mb-3">
-                <label for="playerid" class="form-label">Booking By:</label>
-                <InputSelect id="playerid" class="form-control" aria-required="true" 
-                @bind-Value="Booking.PlayerId">
-                    @foreach (var player in Players)
-                    {
-                        <option value="@player.Id">@player.Name</option>
-                    }
-                </InputSelect>
-            </div>
+			<div class="mb-3">
+				<label for="playerid" class="form-label">Booking By:</label>
+				<InputSelect id="playerid" class="form-control" aria-required="true"
+				@bind-Value="Booking.PlayerId">
+					@foreach (var player in Players)
+					{
+						<option value="@player.Id">@player.Name</option>
+					}
+				</InputSelect>
+			</div>
 
-            <div class="mb-3">
-                <label for="date" class="form-label">Date:</label>
+			<div class="mb-3">
+				<label for="date" class="form-label">Date:</label>
+				<InputDate id="datePicker" class="form-control" @bind-Value="@BookingDate" />
+			</div>
 
-                @* <InputDate id="date" class="form-control" aria-required="true" *@
-                @*             @bind-Value="Booking.Date" @onchange="@(x => OnDateChanged(@Booking.Date))" /> *@
+			<div class="mb-3">
+				<label for="slot" class="form-label">Slot:</label>
+				<InputSelect id="slot" @bind-Value="Booking.Slot" class="form-control" aria-required="true">
+					@foreach (var item in TimeSlots)
+					{
+						<option value="@item">@item</option>
+					}
+				</InputSelect>
+			</div>
+		</div>
 
-                <InputDate id="datePicker" class="form-control" @bind-Value="@BookingDate"  />
-            </div>
+		<div class="row">
+			@if (Players.Count > 0)
+			{
+				<div class="row align-items-center">
+					<div class="mb-3">
+						<label for="playerSelect" class="form-label">Select a Player:</label>
+						<select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
+							<option value="0">-- Select --</option>
+							@foreach (var player in Players)
+							{
+								<option value="@player.Id">@player.Name</option>
+							}
+						</select>
+					</div>
 
-            <div class="mb-3">
-                <label for="slot" class="form-label">Slot:</label>
-                <InputSelect id="slot" @bind-Value="Booking.Slot" class="form-control" aria-required="true">
-                    @foreach (var item in TimeSlots)
-                    {
-                        <option value="@item">@item</option>
-                    }
-                </InputSelect>
-            </div>
+					<div class="mb-2">
+						<button type="button" class="btn btn-primary" @onclick="() => AddPlayer()" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)">Add Player</button>
+					</div>
+				</div>
+			}
 
-            <button type="submit" class="btn btn-primary">Create</button>
-        </EditForm>
-    </div>
+			@if (SelectedPlayers.Count >= 4)
+			{
+				<p class="text-danger">Maximum of 4 players reached.</p>
+			}
 
-    <div class="col-md-6">
-        @if (Players.Count > 0)
-        {
-            <div class="row align-items-center">
-                <div class="mb-3">
-                    <label for="playerSelect" class="form-label">Select a Player:</label>
-                    <select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
-                        <option value="0">-- Select --</option>
-                        @foreach (var player in Players)
-                        {
-                            <option value="@player.Id">@player.Name</option>
-                        }
-                    </select>
-                </div>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Player Name</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var player in SelectedPlayers.Select((p, index) => new { p, index }))
+					{
+						<tr>
+							<td>@(player.index + 1)</td>
+							<td>@player.p.Name</td>
+							<td><button type="button" class="btn btn-danger" @onclick="() => RemovePlayer(player.index, player.p.Id)" value="Remove">Remove Player</button></td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
 
-                <div class="mb-2">
-                    <button class="btn btn-primary" @onclick="AddPlayer" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)">Add Player</button>
-                </div>
-            </div>
-        }
+		<div class="row">
+			<button type="submit" class="btn btn-primary" disabled="@(SelectedPlayers.Count == 0)">Create</button>
 
-        @if (SelectedPlayers.Count >= 4)
-        {
-            <p class="text-danger">Maximum of 4 players reached.</p>
-        }
-
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Player Name</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var player in SelectedPlayers.Select((p, index) => new { p, index }))
-                {
-                    <tr>
-                        <td>@(player.index + 1)</td>
-                        <td>@player.p.Name</td>
-                        <td><button class="btn btn-danger" @onclick="() => RemovePlayer(player.index, player.p.Id)">Remove</button></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+			<div>
+				<a href="/bookings">Back to List</a>
+			</div>
+		</div>
+	</div>
+</EditForm>
 
 
-<div>
-    <a href="/bookings">Back to List</a>
-</div>
 
 @code {
-    private Booking Booking { get; set; } = new() { Date = DateTime.Today };
+	private Booking Booking { get; set; } = new() { Date = DateTime.Today };
 
-    private List<Player> Players = new();
+	private List<Player> Players = new();
 
-    private List<string> TimeSlots { get; set; } = new();
+	private List<string> TimeSlots { get; set; } = new();
 
-    private string ErrorMessage = string.Empty;
+	private string ErrorMessage = string.Empty;
 
-    private List<Player> SelectedPlayers = new();
+	private List<Player> SelectedPlayers = new();
 
-    private int SelectedPlayerId = 0;
+	private int SelectedPlayerId = 0;
 
-    private DateTime _bookingDate = DateTime.Today;
+	private DateTime _bookingDate = DateTime.Today;
 
-    public DateTime BookingDate
-    {
-        get => _bookingDate;
-        set
-        {
-            _bookingDate = value; 
+	private bool blockSubmit = true;
 
-            OnDateChanged(_bookingDate);
-        }
-    }
+	private string disabled = "disabled";
 
-    protected override async Task OnInitializedAsync()
-    {
-        TimeSlots = BookingRepo.GenerateAvailableTimes();
-        Players = await PlayerRepo.GetPlayersAsync();
-    }
+	public DateTime BookingDate
+	{
+		get => _bookingDate;
+		set
+		{
+			_bookingDate = value;
+
+			OnDateChanged(_bookingDate);
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		TimeSlots = BookingRepo.GenerateAvailableTimes();
+		if (TimeSlots.Any())
+		{
+			Booking.Slot = TimeSlots.First();
+		}
+
+		Players = await PlayerRepo.GetPlayersAsync();
+		if (Players.Any())
+		{
+			Booking.PlayerId = Players.First().Id;
+		}
+	}
 
 
-    private void OnDateChanged(DateTime bookingDate)
-    {
-        TimeSlots = BookingRepo.GenerateAvailableTimes(bookingDate);
+	private void OnDateChanged(DateTime bookingDate)
+	{
+		TimeSlots = BookingRepo.GenerateAvailableTimes(bookingDate);
 
-        StateHasChanged();
-    }
+		if (string.IsNullOrEmpty(TimeSlots.FirstOrDefault())){
+			ErrorMessage = "There is not time available for the date selected.";
+			return;
+		}
+
+		ErrorMessage = "";
+		StateHasChanged();
+	}
 
 
-    private async Task AddBooking()
-    {
-        Booking.Date = BookingDate;
+	private async Task AddBooking()
+	{
+		Booking.Date = BookingDate;
 
-        if (!SlotAvailable())
-        {
-            ErrorMessage = "Select a future slot.";
-            return;
-        }
+		if (!SlotAvailable())
+		{
+			ErrorMessage = "Select a future slot.";
+			return;
+		}
 
-        var alreadyBooked = await BookingRepo.IsPlayerAlreadyBookedAsync(Booking.PlayerId, Booking.Date);
-        if (alreadyBooked)
-        {
-            ErrorMessage = "Member already has a booking on this day.";
-            return;
-        }
+		var alreadyBooked = await BookingRepo.IsPlayerAlreadyBookedAsync(Booking.PlayerId, Booking.Date);
+		if (alreadyBooked)
+		{
+			ErrorMessage = "Member already has a booking on this day.";
+			return;
+		}
 
-        var slotAvailable = await BookingRepo.IsSlotAvailableAsync(Booking.Slot, Booking.Date);
-        if (!slotAvailable)
-        {
-            ErrorMessage = "Slot is not available.";
-            return;
-        }
+		var slotAvailable = await BookingRepo.IsSlotAvailableAsync(Booking.Slot, Booking.Date);
+		if (!slotAvailable)
+		{
+			ErrorMessage = "Slot is not available.";
+			return;
+		}
 
-        if (!SelectedPlayers.Any())
-        {
-            ErrorMessage = "Please add at least one player.";
-            return;
-        }
+		if (!SelectedPlayers.Any())
+		{
+			ErrorMessage = "Please add at least one player.";
+			return;
+		}
 
-        try
-        {
-            await BookingRepo.AddBookingAsync(Booking, SelectedPlayers.Select(p => new BookingPlayer { PlayerId = p.Id }).ToList());
-            NavigationManager.NavigateTo("/bookings");
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
+		try
+		{
+			await BookingRepo.AddBookingAsync(Booking, SelectedPlayers.Select(p => new BookingPlayer { PlayerId = p.Id }).ToList());
+			NavigationManager.NavigateTo("/bookings");
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = ex.Message;
+		}
+	}
 
-    private bool SlotAvailable()
-    {
-        TimeSpan selectedTime = TimeSpan.Parse(Booking.Slot);
-        DateTime currentDate = DateTime.Now;
-        DateTime selectedDate = currentDate.Date + selectedTime;
+	private bool SlotAvailable()
+	{
+		TimeSpan selectedTime = TimeSpan.Parse(Booking.Slot);
+		DateTime currentDate = DateTime.Now;
+		DateTime selectedDate = currentDate.Date + selectedTime;
 
-        return selectedDate > currentDate;
-    }
+		return selectedDate > currentDate;
+	}
 
-    private void AddPlayer()
-    {
-        if (SelectedPlayers.Count < 4)
-        {
-            var player = Players.FirstOrDefault(p => p.Id == SelectedPlayerId);
-            if (player != null && !SelectedPlayers.Any(p => p.Id == player.Id))
-            {
-                SelectedPlayers.Add(player);
-                SelectedPlayerId = 0; // Reset dropdown
-            }
-        }
-    }
+	private void AddPlayer()
+	{
+		if (SelectedPlayers.Count < 4)
+		{
+			var player = Players.FirstOrDefault(p => p.Id == SelectedPlayerId);
 
-    private void RemovePlayer(int index, int playerId)
-    {
-        var playerToRemove = SelectedPlayers.FirstOrDefault(p => p.Id == playerId);
-        if (playerToRemove != null)
-        {
-            SelectedPlayers.Remove(playerToRemove);
-        }
-    }
+			if (player == null){
+				ErrorMessage = "The player is not valid.";
+				return;
+			}
 
-    
+			if (!SelectedPlayers.Any(p => p.Id == player.Id))
+			{
+				SelectedPlayers.Add(player);
+				SelectedPlayerId = 0; // Reset dropdown
+			} else {
+				ErrorMessage = "The player has already been added.";
+				return;
+			}
+
+
+		}
+	}
+
+	private void RemovePlayer(int index, int playerId)
+	{
+		var playerToRemove = SelectedPlayers.FirstOrDefault(p => p.Id == playerId);
+		if (playerToRemove != null)
+		{
+			SelectedPlayers.Remove(playerToRemove);
+		}
+	}
 }
