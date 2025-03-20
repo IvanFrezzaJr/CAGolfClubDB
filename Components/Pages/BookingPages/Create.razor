@@ -200,12 +200,6 @@ TODO:
 	{
 		Booking.Date = BookingDate;
 
-		if (!SlotAvailable())
-		{
-			ErrorMessage = "Select a future slot.";
-			return;
-		}
-
 		var alreadyBooked = await BookingRepo.IsPlayerAlreadyBookedAsync(Booking.PlayerId, Booking.Date);
 		if (alreadyBooked)
 		{
@@ -237,14 +231,6 @@ TODO:
 		}
 	}
 
-	private bool SlotAvailable()
-	{
-		TimeSpan selectedTime = TimeSpan.Parse(Booking.Slot);
-		DateTime currentDate = DateTime.Now;
-		DateTime selectedDate = currentDate.Date + selectedTime;
-
-		return selectedDate > currentDate;
-	}
 
 	private void AddPlayer()
 	{
