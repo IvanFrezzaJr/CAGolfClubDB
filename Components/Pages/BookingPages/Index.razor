@@ -7,35 +7,45 @@
 @implements IAsyncDisposable
 @inject BookingRepository BookingRepository
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Booking</PageTitle>
 
-<h1>Index</h1>
 
-<p>
-    <a href="bookings/create">Create New</a>
-</p>
+<div class="table-wrapper">
+    <div class="table-title">
+        <div class="row">
+            <div class="col-sm-8"><h2>Employee <b>Details</b></h2></div>
+            <div class="col-sm-4 text-end">
+                <a href="bookings/create" class="btn btn-primary"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Create New</a>
+            </div>
+        </div>
+    </div>
 
-@if (itemsQueryable == null)
-{
-    <p><em>loading...</em></p>
-}
-else
-{
-    <div class="grid">
-        <QuickGrid Class="table" Items="@FilteredBookings">
-            <PropertyColumn Property="booking => booking.PlayerId" Sortable="true" />
+
+    @if (itemsQueryable == null)
+    {
+        <p><em>loading...</em></p>
+    }
+    else
+    {
+  
+        <QuickGrid Class="table table-bordered" Items="@FilteredBookings">
+            <PropertyColumn Property="booking => booking.PlayerId" Title="ID" Sortable="true" />
             <PropertyColumn Property="booking => booking.Date" Format="dd/MM/yyyy" Sortable="true" />
             <PropertyColumn Property="booking => booking.Slot" Sortable="true" />
 
 
-            <TemplateColumn Context="booking">
-                <a href="@($"bookings/edit?id={booking.Id}")">Edit</a> |
-                <a href="@($"bookings/details?id={booking.Id}")">Details</a> |
-                <a href="@($"bookings/delete?id={booking.Id}")">Delete</a>
+            <TemplateColumn Class="text-end" Context="booking">
+                <a href="@($"bookings/edit?id={booking.Id}")" class="btn btn-sm btn-warning"><span class="bi bi-pencil-fill" aria-hidden="true"></span>Edit</a>
+                <a href="@($"bookings/details?id={booking.Id}")" class="btn btn-sm btn-info"><span class="bi bi-file-earmark-fill" aria-hidden="true"></span>Details</a>
+                <a href="@($"bookings/delete?id={booking.Id}")" class="btn btn-sm btn-danger"><span class="bi bi-trash3-fill" aria-hidden="true"></span>Delete</a>
             </TemplateColumn>
         </QuickGrid>
-    </div>
-}
+
+    }
+
+
+</div>
+
 
 @code {
     private CAGolfClubDBContext context = default!;
