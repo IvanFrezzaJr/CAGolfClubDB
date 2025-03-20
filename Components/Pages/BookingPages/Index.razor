@@ -34,7 +34,7 @@
             <PropertyColumn Property="booking => booking.Slot" Sortable="true" />
 
 
-            <TemplateColumn Class="text-end" Context="booking">
+            <TemplateColumn Context="booking" Title="Action">
                 <a href="@($"bookings/edit?id={booking.Id}")" class="btn btn-sm btn-warning"><span class="bi bi-pencil-fill" aria-hidden="true"></span>Edit</a>
                 <a href="@($"bookings/details?id={booking.Id}")" class="btn btn-sm btn-info"><span class="bi bi-file-earmark-fill" aria-hidden="true"></span>Details</a>
                 <a href="@($"bookings/delete?id={booking.Id}")" class="btn btn-sm btn-danger"><span class="bi bi-trash3-fill" aria-hidden="true"></span>Delete</a>
