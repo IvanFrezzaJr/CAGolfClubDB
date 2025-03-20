@@ -24,6 +24,10 @@ form {
     color: var(--anti-flash-white);
 }
 
+.top-row {
+    height: 3.5rem;
+}
+
 .custom-option {
     font-size: 16px;
     background-color: var(--black-howl);

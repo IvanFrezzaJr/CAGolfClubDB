@@ -17,7 +17,7 @@ TODO:
 - [x] bug: valdiacao duplicada. remover uma das validacoes: The date must be today or in the future.
 -->
 
-<PageTitle>Booking</PageTitle>
+<PageTitle>Create a Booking</PageTitle>
 
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -37,9 +37,6 @@ TODO:
 			</div>
 		</div>
 	</div>
-
-
-
 
 	<DataAnnotationsValidator />
 	<ValidationSummary class="text-danger" role="alert" />
@@ -74,35 +71,38 @@ TODO:
 	</div>
 
 	<div class="row">
-		@if (Players.Count > 0)
-		{
-			<div class="row align-items-center">
-				<div class="mb-3">
-					<label for="playerSelect" class="form-label">Select a Player:</label>
-					<select id="playerSelect" class="form-select custom-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
-						<option value="0">-- Select --</option>
-						@foreach (var player in Players)
-						{
-							<option class="form-control custom-option" value="@player.Id">@player.Name</option>
-						}
-					</select>
-				</div>
-
-			</div>
-		}
-
-		@if (SelectedPlayers.Count >= 4)
-		{
-			<p class="text-danger">Maximum of 4 players reached.</p>
-		}
-
 
 		<div class="table-wrapper">
 			<div class="table-title">
 				<div class="row">
-					<div class="col-sm-8"><h2>Players ready for the <b>match</b></h2></div>
-					<div class="col-sm-4 text-end">
-						<button type="button" class="btn btn-primary" @onclick="() => AddPlayer()" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Add Player</button>
+					<div class="col-sm-12"><h2>Players ready for the <b>match</b></h2></div>
+					<div class="col-sm-8">
+
+						@if (Players.Count > 0)
+						{
+							<div class="row align-items-center">
+								<div class="mb-3">
+									<select id="playerSelect" class="form-select custom-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
+										<option value="0">-- Select --</option>
+										@foreach (var player in Players)
+										{
+											<option class="form-control custom-option" value="@player.Id">@player.Name</option>
+										}
+									</select>
+								</div>
+
+							</div>
+						}
+
+						@if (SelectedPlayers.Count >= 4)
+						{
+							<p class="text-danger">Maximum of 4 players reached.</p>
+						}
+
+
+					</div>
+					<div class="col-sm-4">
+						<button type="button"  style="padding: 12px;" class="btn btn-primary" @onclick="() => AddPlayer()" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Add Player</button>
 
 					</div>
 				</div>
