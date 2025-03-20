@@ -10,19 +10,27 @@
 <!--
 TODO:
 - [x] refatorar pagina. mover todas as acoes do banco de dados par ao repositorio correto
-- [x] verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
-- blocar o bota de criar ate todos os player forem adicionados
-- remover players ja adicionados da lista (desejavel)
-- adicionar validacao na modificacao dos campos (desejavel)
-- bug: valdiacao duplicada. remover uma das validacoes: The date must be today or in the future.
+- verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
+- [x] blocar o bota de criar ate todos os player forem adicionados
+- [x] remover players ja adicionados da lista (desejavel)
+- [x] adicionar validacao na modificacao dos campos (desejavel)
+- [x] bug: valdiacao duplicada. remover uma das validacoes: The date must be today or in the future.
 -->
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Booking</PageTitle>
 
-<h1>Create</h1>
+<div class="container">
+	<div class="table-title">
+		<div class="row">
+			<div class="col-sm-8"><h2>Book a <b>match</b></h2></div>
+			<div class="col-sm-4 text-end">
+			<a href="/bookings" class="btn btn-secondary">Back to List</a>
+			</div>
+		</div>
+	</div>
+</div>
 
-<h2>Booking</h2>
-<hr />
+
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
 	<div class="alert alert-danger">
@@ -31,65 +39,74 @@ TODO:
 }
 
 <EditForm method="post" Model="Booking" OnValidSubmit="AddBooking" FormName="create" Enhance>
-	<div class="container">
-		<div class="row">
-			<DataAnnotationsValidator />
-			<ValidationSummary class="text-danger" role="alert" />
 
-			<div class="mb-3">
-				<label for="playerid" class="form-label">Booking By:</label>
-				<InputSelect id="playerid" class="form-control" aria-required="true"
-				@bind-Value="Booking.PlayerId">
-					@foreach (var player in Players)
-					{
-						<option value="@player.Id">@player.Name</option>
-					}
-				</InputSelect>
-			</div>
+	<DataAnnotationsValidator />
+	<ValidationSummary class="text-danger" role="alert" />
 
-			<div class="mb-3">
-				<label for="date" class="form-label">Date:</label>
-				<InputDate id="datePicker" class="form-control" @bind-Value="@BookingDate" />
-			</div>
-
-			<div class="mb-3">
-				<label for="slot" class="form-label">Slot:</label>
-				<InputSelect id="slot" @bind-Value="Booking.Slot" class="form-control" aria-required="true">
-					@foreach (var item in TimeSlots)
-					{
-						<option value="@item">@item</option>
-					}
-				</InputSelect>
-			</div>
+	<div class="row">
+		<div class="mb-3">
+			<label for="playerid" class="form-label">Booking By:</label>
+			<InputSelect id="playerid" class="form-control custom-select" aria-required="true"
+			@bind-Value="Booking.PlayerId">
+				@foreach (var player in Players)
+				{
+					<option class="form-control custom-option" value="@player.Id">@player.Name</option>
+				}
+			</InputSelect>
 		</div>
+		<div class="mb-3">
+			<label for="date" class="form-label">Date:</label>
+			<InputDate id="datePicker"  class="form-control " @bind-Value="@BookingDate" />
+		</div>
+	</div>
 
-		<div class="row">
-			@if (Players.Count > 0)
-			{
-				<div class="row align-items-center">
-					<div class="mb-3">
-						<label for="playerSelect" class="form-label">Select a Player:</label>
-						<select id="playerSelect" class="form-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
-							<option value="0">-- Select --</option>
-							@foreach (var player in Players)
-							{
-								<option value="@player.Id">@player.Name</option>
-							}
-						</select>
-					</div>
+	<div class="row">
+		<div class="mb-3">
+			<label for="slot" class="form-label">Slot:</label>
+			<InputSelect id="slot" @bind-Value="Booking.Slot" class="form-control custom-select" aria-required="true">
+				@foreach (var item in TimeSlots)
+				{
+					<option class="form-control custom-option"  value="@item">@item</option>
+				}
+			</InputSelect>
+		</div>
+	</div>
 
-					<div class="mb-2">
-						<button type="button" class="btn btn-primary" @onclick="() => AddPlayer()" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)">Add Player</button>
+	<div class="row">
+		@if (Players.Count > 0)
+		{
+			<div class="row align-items-center">
+				<div class="mb-3">
+					<label for="playerSelect" class="form-label">Select a Player:</label>
+					<select id="playerSelect" class="form-select custom-select" @bind-Value="SelectedPlayerId" @bind-Value:event="onchange">
+						<option value="0">-- Select --</option>
+						@foreach (var player in Players)
+						{
+							<option class="form-control custom-option" value="@player.Id">@player.Name</option>
+						}
+					</select>
+				</div>
+
+			</div>
+		}
+
+		@if (SelectedPlayers.Count >= 4)
+		{
+			<p class="text-danger">Maximum of 4 players reached.</p>
+		}
+
+
+		<div class="table-wrapper">
+			<div class="table-title">
+				<div class="row">
+					<div class="col-sm-8"><h2>Players ready for the <b>match</b></h2></div>
+					<div class="col-sm-4 text-end">
+						<button type="button" class="btn btn-primary" @onclick="() => AddPlayer()" disabled="@(SelectedPlayers.Count >= 4 || SelectedPlayerId == 0)"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Add Player</button>
+
 					</div>
 				</div>
-			}
-
-			@if (SelectedPlayers.Count >= 4)
-			{
-				<p class="text-danger">Maximum of 4 players reached.</p>
-			}
-
-			<table class="table">
+			</div>
+			<table class="table table-bordered">
 				<thead>
 					<tr>
 						<th>#</th>
@@ -109,15 +126,12 @@ TODO:
 				</tbody>
 			</table>
 		</div>
-
-		<div class="row">
-			<button type="submit" class="btn btn-primary" disabled="@(SelectedPlayers.Count == 0)">Create</button>
-
-			<div>
-				<a href="/bookings">Back to List</a>
-			</div>
-		</div>
 	</div>
+
+	<div class="row">
+		<button type="submit" class="btn btn-primary" disabled="@(SelectedPlayers.Count == 0)">Book</button>
+	</div>
+	
 </EditForm>
 
 
