@@ -4,18 +4,26 @@
 @inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Player Details</PageTitle>
 
-<h1>Details</h1>
 
-<div>
-    <h2>Player</h2>
-    <hr />
-    @if (player is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
+@if (player is null)
+{
+    <p><em>Loading...</em></p>
+}
+else {
+
+    <div class="table-wrapper">
+        <div class="table-title" style="padding: 1em 0 3em 0;">
+            <div class="row">
+                <div class="col-sm-6"><h2>Player <b>details</b></h2></div>
+                <div class="col-sm-6">
+                    <a href="@($"/players/edit?id={player.Id}")" class="btn btn-primary">Edit</a>
+                    <a href="@($"/players")" class="btn btn-secondary">Back to List</a>
+                </div>
+            </div>        
+        </div>
+
         <dl class="row">
             <dt class="col-sm-2">MembershipNumber</dt>
             <dd class="col-sm-10">@player.MembershipNumber</dd>
@@ -28,12 +36,10 @@
             <dt class="col-sm-2">Handcap</dt>
             <dd class="col-sm-10">@player.Handcap</dd>
         </dl>
-        <div>
-            <a href="@($"/players/edit?id={player.Id}")">Edit</a> |
-            <a href="@($"/players")">Back to List</a>
-        </div>
-    }
-</div>
+
+    </div>
+}
+
 
 @code {
     private Player? player;

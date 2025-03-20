@@ -4,56 +4,56 @@
 @inject IDbContextFactory<CAGolfClubDB.Data.CAGolfClubDBContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Player</PageTitle>
 
-<h1>Create</h1>
 
-<h2>Player</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Player" OnValidSubmit="AddPlayer" FormName="create" Enhance>
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
-            <div class="mb-3">
-                <label for="membershipnumber" class="form-label">MembershipNumber:</label> 
-                <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control" disabled />
-                <ValidationMessage For="() => Player.MembershipNumber" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="name" class="form-label">Name:</label> 
-                <InputText id="name" @bind-Value="Player.Name" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => Player.Name" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label> 
-                <InputText id="email" @bind-Value="Player.Email" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => Player.Email" class="text-danger" /> 
-            </div>        
+<EditForm method="post" Model="Player" OnValidSubmit="AddPlayer" FormName="create" Enhance>
 
-            <div class="mb-3">
-                <label for="gender" class="form-label">Gender:</label>
-                <InputSelect id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true">
-                    @foreach (var item in Enum.GetValues(typeof(Gender)))
-                    {
-                        <option value="@item">@item</option>
-                    }
-                </InputSelect>
+    <div class="table-title" style="padding: 1em 0 3em 0;">
+        <div class="row">
+            <div class="col-sm-8"><h2>Create <b>player</b></h2></div>
+            <div class="col-sm-4 text-end">
+                <a href="/players" class="btn btn-secondary">Back to List</a>
             </div>
-
-            <div class="mb-3">
-                <label for="handcap" class="form-label">Handcap:</label> 
-                <InputNumber id="handcap" @bind-Value="Player.Handcap" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => Player.Handcap" class="text-danger" /> 
-            </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
-        </EditForm>
+        </div>
     </div>
-</div>
 
-<div>
-    <a href="/players">Back to List</a>
-</div>
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert"/>
+    <div class="mb-3">
+        <label for="membershipnumber" class="form-label">Membership Number:</label> 
+        <InputText id="membershipnumber" @bind-Value="Player.MembershipNumber" class="form-control input-disabled" disabled />
+        <ValidationMessage For="() => Player.MembershipNumber" class="text-danger" /> 
+    </div>        
+    <div class="mb-3">
+        <label for="name" class="form-label">Name:</label> 
+        <InputText id="name" @bind-Value="Player.Name" class="form-control" aria-required="true"/> 
+        <ValidationMessage For="() => Player.Name" class="text-danger" /> 
+    </div>        
+    <div class="mb-3">
+        <label for="email" class="form-label">Email:</label> 
+        <InputText id="email" @bind-Value="Player.Email" class="form-control" aria-required="true"/> 
+        <ValidationMessage For="() => Player.Email" class="text-danger" /> 
+    </div>        
+
+    <div class="mb-3">
+        <label for="gender" class="form-label">Gender:</label>
+        <InputSelect id="gender" @bind-Value="Player.Gender" class="form-control" aria-required="true">
+            @foreach (var item in Enum.GetValues(typeof(Gender)))
+            {
+                <option value="@item">@item</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label for="handcap" class="form-label">Handcap:</label> 
+        <InputNumber id="handcap" @bind-Value="Player.Handcap" class="form-control" aria-required="true"/> 
+        <ValidationMessage For="() => Player.Handcap" class="text-danger" /> 
+    </div>        
+    <button type="submit" class="btn btn-primary">Create</button>
+
+</EditForm>
 
 @code {
     [SupplyParameterFromForm]

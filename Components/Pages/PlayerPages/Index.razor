@@ -7,74 +7,79 @@
 @implements IAsyncDisposable
 @inject PlayerRepository PlayerRepository
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Player</PageTitle>
 
-<h1>Index</h1>
-
-<p>
-    <a href="players/create">Create New</a>
-</p>
-
-@if (itemsQueryable == null) 
-{
-    <p><em>loading...</em></p>
-}
-else
-{
-    <div class="grid">
-        <QuickGrid Class="table" Items="@FilteredPlayers" ItemKey="player => player.Id" Pagination="@pagination">
-            <PropertyColumn Title="MembershipNumber" Property="player => player.MembershipNumber" Sortable="true" />
-            <PropertyColumn Title="Name" Property="player => player.Name" Sortable="true">
-                <ColumnOptions>
-                    <div class="search-box">
-                        <input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Player name..." />
-                    </div>
-                </ColumnOptions>
-            </PropertyColumn>
-            <PropertyColumn Title="Email" Property="player => player.Email" Sortable="true" />
-            <PropertyColumn Title="Gender" Property="player => player.Gender" Sortable="true">
-                <ColumnOptions>
-                    <div class="filter-box">
-                        <select @bind="genderFilter" @bind:event="onchange">
-                            <option value="All" selected>All</option>
-                            @foreach (var gender in genderList)
-                            {
-                                <option value="@gender">@gender</option>
-                            }
-                        </select>
-                    </div>
-                </ColumnOptions>
-            </PropertyColumn>
-        <PropertyColumn Title="Handicap" Property="player => player.Handcap" Sortable="true">
-                <ColumnOptions>
-                    <div class="filter-box">
-                        <select @bind="handicapFilter" @bind:event="onchange">
-                            <option value="All" selected>All</option>
-                            <option value="10">Below 10</option>
-                            <option value="11-20">Between 11 and 20</option>
-                            <option value="20">Above 20</option>
-                        </select>
-                    </div>
-                </ColumnOptions>
-            </PropertyColumn>
-
-            <TemplateColumn Context="player">
-                <a href="@($"players/edit?id={player.Id}")">Edit</a> |
-                <a href="@($"players/details?id={player.Id}")">Details</a> |
-                <a href="@($"players/delete?id={player.Id}")">Delete</a>
-            </TemplateColumn>
-        </QuickGrid>
+<div class="table-wrapper">
+    <div class="table-title">
+        <div class="row">
+            <div class="col-sm-8"><h2>Booking <b>Details</b></h2></div>
+            <div class="col-sm-4 text-end">
+                <a href="players/create" class="btn btn-primary"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Create New</a>
+            </div>
+        </div>
     </div>
 
-    <div class="page-size-chooser">
-        times :
-        <select @bind="@pagination.ItemsPerPage">
-            <option>5</option>
-            <option>10</option>
-        </select>
-    </div>
-    <Paginator State="@pagination" />
-}
+    @if (itemsQueryable == null) 
+    {
+        <p><em>loading...</em></p>
+    }
+    else
+    {
+ 
+            <QuickGrid Class="table table-bordered" Items="@FilteredPlayers" ItemKey="player => player.Id" Pagination="@pagination">
+                <PropertyColumn Title="Membership Number" Property="player => player.MembershipNumber" Sortable="true" />
+                <PropertyColumn Title="Name" Property="player => player.Name" Sortable="true">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <input type="search" autofocus @bind="nameFilter" @bind:event="oninput" placeholder="Player name..." />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+                <PropertyColumn Title="Email" Property="player => player.Email" Sortable="true" />
+                <PropertyColumn Title="Gender" Property="player => player.Gender" Sortable="true">
+                    <ColumnOptions>
+                        <div class="filter-box">
+                            <select @bind="genderFilter" @bind:event="onchange">
+                                <option value="All" selected>All</option>
+                                @foreach (var gender in genderList)
+                                {
+                                    <option value="@gender">@gender</option>
+                                }
+                            </select>
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            <PropertyColumn Title="Handicap" Property="player => player.Handcap" Sortable="true">
+                    <ColumnOptions>
+                        <div class="filter-box">
+                            <select @bind="handicapFilter" @bind:event="onchange">
+                                <option value="All" selected>All</option>
+                                <option value="10">Below 10</option>
+                                <option value="11-20">Between 11 and 20</option>
+                                <option value="20">Above 20</option>
+                            </select>
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+
+                <TemplateColumn Context="player" Title="Actions">
+                <a href="@($"players/edit?id={player.Id}")" class="btn btn-sm btn-warning"><span class="bi bi-pencil-fill" aria-hidden="true"></span>Edit</a>
+                <a href="@($"players/details?id={player.Id}")" class="btn btn-sm btn-info"><span class="bi bi-file-earmark-fill" aria-hidden="true"></span>Details</a>
+                <a href="@($"players/delete?id={player.Id}")" class="btn btn-sm btn-danger"><span class="bi bi-trash3-fill" aria-hidden="true"></span>Delete</a>
+                </TemplateColumn>
+            </QuickGrid>
+  
+
+        <div class="page-size-chooser">
+            times :
+            <select @bind="@pagination.ItemsPerPage">
+                <option>5</option>
+                <option>10</option>
+            </select>
+        </div>
+        <Paginator State="@pagination" />
+    }
+</div>
 
 @code {
     private IQueryable<Player>? itemsQueryable;
