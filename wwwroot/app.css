@@ -1,11 +1,43 @@
 :root {
-    --black-howl: #1f1e31;
-    --spinel-stone-black: #27283c;
-    --bubblegum-baby-girl: #bb56f3;
-    --purplish-pink: #e04fca;
-    --anti-flash-white: #f2f4f4;
-    --latin-charm: #282d42;
+    --black-howl: #1f1e31 !important;
+    --spinel-stone-black: #27283c !important;
+    --bubblegum-baby-girl: #bb56f3 !important;
+    --purplish-pink: #e04fca !important;
+    --anti-flash-white: #f2f4f4 !important;
+    --latin-charm: #282d42 !important;
 }
+
+
+/* scroll style */
+::-webkit-scrollbar {
+    width: 10px; 
+    height: 10px; 
+}
+
+
+::-webkit-scrollbar-track {
+    background: var(--spinel-stone-black);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bubblegum-baby-girl);
+    border-radius: 5px;
+}
+
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--purplish-pink);
+    }
+
+
+
+* {
+    scrollbar-color: var(--bubblegum-baby-girl) var(--spinel-stone-black);
+    scrollbar-width: thin;
+}
+
+
 
 
 html, body {
@@ -34,6 +66,40 @@ form {
     color: var(--anti-flash-white);
     padding: 15px;
 }
+
+.card{
+background-color: var(--spinel-stone-black) !important;
+}
+
+
+.col-options {
+    position: absolute !important;
+    background: #bb56f3 !important;
+    border: 1px solid #272c41 !important;
+    left: 0 !important;
+    padding: 0.1rem !important;
+    z-index: 1 !important;
+}
+
+    select {
+        padding: 12px;
+        font-size: 16px;
+        border: 2px solid var(--latin-charm);
+        border-radius: 8px;
+        background-color: var(--black-howl);
+        transition: all 0.3s ease-in-out;
+        outline: none;
+        color: var(--anti-flash-white);
+    }
+
+    select option{
+        min-width: 200px;
+    }
+
+.paginator {
+    border-top: 1px solid var(--latin-charm) !important;
+}
+
 
 .custom-select,
 input,

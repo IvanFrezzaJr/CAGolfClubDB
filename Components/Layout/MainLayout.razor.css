@@ -16,7 +16,7 @@ main {
 }
 
 .top-row {
-    background-color: var(--spinel-stone-black);
+/*    background-color: var(--spinel-stone-black);*/
     justify-content: flex-end;
     height: 3.5rem;
     display: flex;

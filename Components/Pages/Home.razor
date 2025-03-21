@@ -2,6 +2,27 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="card" style="width: 18rem;">
+				<div class="card-body">
+					<h5 class="card-title">Player</h5>
+					<p class="card-text">Register a new player here!</p>
+					<a href="@($"/players")" class="btn btn-primary">Register</a>
+				</div>
+			</div>
+		</div>
 
-Welcome to your new app.
+		<div class="col-md-3">
+			<div class="card" style="width: 18rem;">
+				<div class="card-body">
+					<h5 class="card-title">Booking</h5>
+					<p class="card-text">Book your golf match easily!</p>
+					<a href="@($"/bookings")" class="btn btn-primary">Book</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
