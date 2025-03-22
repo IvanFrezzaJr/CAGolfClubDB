@@ -14,7 +14,8 @@
         <div class="row">
             <div class="col-sm-8"><h2>Player <b>Details</b></h2></div>
             <div class="col-sm-4 text-end">
-                <a href="players/create" class="btn btn-primary"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Create New</a>
+                <a href="players/create" class="btn btn-secondary"><span class="bi bi-plus-circle-fill" aria-hidden="true"></span>Create New</a>
+                <a href="@($"/")" class="btn btn-outline-secondary"><span class="bi bi-arrow-left-circle-fill" aria-hidden="true"></span>Back</a>
             </div>
         </div>
     </div>
@@ -79,6 +80,31 @@
         </div>
         <Paginator State="@pagination" />
     }
+</div>
+
+
+<div class="container-fluid" style="margin: 3rem 0">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-5 d-flex justify-content-end">
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Booking</h5>
+                    <p class="card-text">Book your golf match easily!</p>
+                    <a href="@($"/bookings")" class="btn btn-primary">Make a booking</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-5 d-flex justify-content-start">
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Home</h5>
+                    <p class="card-text">A fresh new start...</p>
+                    <a href="@($"/")" class="btn btn-primary">Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {

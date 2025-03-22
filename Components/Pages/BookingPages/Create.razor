@@ -7,16 +7,6 @@
 @inject PlayerRepository PlayerRepo
 
 
-<!--
-TODO:
-- [x] refatorar pagina. mover todas as acoes do banco de dados par ao repositorio correto
-- verificar novamente a validacao de data. Nao permite cadastrar data futura com slot no passado
-- [x] blocar o bota de criar ate todos os player forem adicionados
-- [x] remover players ja adicionados da lista (desejavel)
-- [x] adicionar validacao na modificacao dos campos (desejavel)
-- [x] bug: valdiacao duplicada. remover uma das validacoes: The date must be today or in the future.
--->
-
 <PageTitle>Create a Booking</PageTitle>
 
 
@@ -33,7 +23,7 @@ TODO:
 		<div class="row">
 			<div class="col-sm-8"><h2>Create a <b>booking</b></h2></div>
 			<div class="col-sm-4 text-end">
-				<a href="/bookings" class="btn btn-secondary">Back to List</a>
+				<a href="/bookings" class="btn btn-outline-secondary">Back to List</a>
 			</div>
 		</div>
 	</div>
@@ -204,7 +194,7 @@ TODO:
 		var alreadyBooked = await BookingRepo.IsPlayerAlreadyBookedAsync(Booking.PlayerId, Booking.Date);
 		if (alreadyBooked)
 		{
-			ErrorMessage = "Member already has a booking on this day.";
+			ErrorMessage = "Players can only book one time per day.";
 			return;
 		}
 

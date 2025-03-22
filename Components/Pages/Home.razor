@@ -2,27 +2,41 @@
 
 <PageTitle>Home</PageTitle>
 
-<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-3">
+<div class="px-4 py-5 my-5 text-center">
+	<img class="d-block mx-auto mb-4" src="favicon.png" alt="">
+	<h1 class="display-5 fw-bold">Centered hero</h1>
+	<div class="col-lg-6 mx-auto">
+		<p class="lead mb-4">This app allows users to register players and make golf course reservations with ease. It features a simple, user-friendly interface for player register, scheduling tee times, and managing bookings, ensuring a smooth experience for players.</p>
+		<div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+			<a href="@($"/players")"  class="btn btn-primary btn-lg px-4 gap-3">Register a Player</a>
+			<a href="@($"/bookings")" class="btn btn-primary btn-lg px-4">Make a Booking</a>
+		</div>
+	</div>
+</div>
+
+
+
+<div class="container-fluid" style="margin-bottom: 3rem">
+	<div class="row justify-content-center">
+		<div class="col-12 col-md-5 d-flex justify-content-end">
 			<div class="card" style="width: 18rem;">
 				<div class="card-body">
 					<h5 class="card-title">Player</h5>
 					<p class="card-text">Register a new player here!</p>
-					<a href="@($"/players")" class="btn btn-primary">Register</a>
+					<a href="@($"/players")" class="btn btn-primary">Register a player</a>
 				</div>
 			</div>
 		</div>
 
-		<div class="col-md-3">
+		<div class="col-12 col-md-5 d-flex justify-content-start">
 			<div class="card" style="width: 18rem;">
 				<div class="card-body">
 					<h5 class="card-title">Booking</h5>
 					<p class="card-text">Book your golf match easily!</p>
-					<a href="@($"/bookings")" class="btn btn-primary">Book</a>
+					<a href="@($"/bookings")" class="btn btn-primary">Make a booking</a>
 				</div>
 			</div>
 		</div>
 	</div>
-
 </div>
+
